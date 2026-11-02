@@ -1,16 +1,18 @@
 package com.leonardo.escuela.entities;
+import com.leonardo.escuela.utils.StringCustomUtils;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @Table(name = "MAESTROS", schema = "ESCUELA")
 @Getter
+@Builder
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
 public class Maestro {
 
@@ -33,7 +35,51 @@ public class Maestro {
     @Column(name = "TELEFONO", nullable = false, unique = true, length = 10)
     private String telefono;
 
-    /*@Builder.Default
+    @Builder.Default
     @OneToMany(mappedBy = "maestro", fetch = FetchType.LAZY)
-    private Lis=<Grupo> grupos = new ArrayList<>();*/
+    private List<Grupo> grupos = new ArrayList<>();
+
+    private static void validarDatos(String nombre, String apellidoPaterno,
+                                     String apellidoMaterno, String email, String telefono) {
+
+        StringCustomUtils.validarTamanio(nombre, 1, 50,
+                "El nombre es requerido y debe tener entre 1 y 50 caracteres");
+
+        StringCustomUtils.validarTamanio(apellidoPaterno, 1, 50,
+                "El apellido paterno es requerido y debe tener entre 1 y 50 caracteres");
+
+        StringCustomUtils.validarTamanio(apellidoMaterno, 1, 50,
+                "El apellido materno es requerido y debe tener entre 1 y 50 caracteres");
+
+        StringCustomUtils.validarTamanio(email, 8, 100,
+                "El email es requerido y debe tener entre 8 y 100 caracteres");
+
+        StringCustomUtils.validarTamanio(telefono, 10, 10,
+                "El teléfono es requerido y debe tener exactamente 10 dígitos");
+    }
+
+    public void actualizar(String nombre, String apellidoPaterno,String apellidoMaterno,String email, String telefono){
+
+        validarDatos(nombre,apellidoPaterno,apellidoMaterno,email,telefono);
+
+    this.nombre=nombre.trim();
+    this.apellidoPaterno=apellidoPaterno.trim();
+    this.apellidoMaterno=apellidoMaterno.trim();
+    this.email=email.trim().toLowerCase();
+    this.telefono=telefono.trim();
+    }
+
+    public static Maestro crear (String nombre, String apellidoPaterno,String apellidoMaterno, String email,String telefono){
+
+        validarDatos(nombre,apellidoPaterno,apellidoMaterno,email,telefono);
+
+        return Maestro.builder()
+                .nombre(nombre.trim())
+                .apellidoPaterno(apellidoPaterno.trim())
+                .apellidoMaterno(apellidoMaterno.trim())
+                .email(email.trim().toLowerCase())
+                .telefono(telefono.trim())
+                .build();
+    }
+
 }
