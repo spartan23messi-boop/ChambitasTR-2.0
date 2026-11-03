@@ -1,16 +1,14 @@
 package com.leonardo.escuela.dto.maestros;
 
-import com
+import com.leonardo.escuela.dto.dato.DatosCurso;
 import io.swagger.v3.oas.annotations.media.Schema;
-@Schema(description = "Informacion de un maestro")
+import java.util.List;
+
+@Schema(description = "Datos del maestro y los cursos que imparte")
 public record MaestroResponse(
-
-        @Schema(descripcion = "ID del maestro",example = "1")
-        Long id;
-
-        @Schema(descripcion = "Nombre completo del maestro",example = "Maximo Decimo Merido")
-        String nombre;
-
-        @Schema(descripcion = "Email del maestro",example)
-
+        @Schema(description = "ID del maestro", example = "1") Long id,
+        @Schema(description = "Nombre completo", example = "Máximo Décimo Meridio") String nombre,
+        @Schema(description = "Email", example = "maximo@escuela.com") String email,
+        @Schema(description = "Teléfono", example = "2221234567") String telefono,
+        @Schema(description = "Cursos impartidos por el maestro") List<DatosCurso> cursos
 ) {}

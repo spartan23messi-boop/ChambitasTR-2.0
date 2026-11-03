@@ -1,4 +1,6 @@
 package com.leonardo.escuela.mapper;
 
-public interface CommonMapper {
+public interface CommonMapper<RQ, RS, E> {
+    E requestAEntidad(RQ request);
+    RS entidadAResponse(E entidad);
 }

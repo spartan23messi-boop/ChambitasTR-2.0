@@ -35,6 +35,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,e.getMessage());
     }
     // 409: la base de datos rechazó el dato (unique, foreign key...)
+    @ExceptionHandler(EntidadRelacionadaException.class)
+    public ProblemDetail handleIntegridad(EntidadRelacionadaException e){
+        log.warn("Relacion encontrada: {}", e.getMessage());
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,e.getMessage());
+    }
+    // 409: la base de datos rechazó el dato (unique, foreign key...)
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleIntegridad(DataIntegrityViolationException e){
         log.warn("Integridad de datos: {}", e.getMessage());
