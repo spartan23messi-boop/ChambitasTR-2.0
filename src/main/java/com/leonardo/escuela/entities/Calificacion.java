@@ -21,7 +21,6 @@ public class Calificacion {
     @Column(name = "ID_CALIFICACION")
     private Long idCalificacion;
 
-    // CADA CALIFICACIÓN CORRESPONDE A UNA INSCRIPCIÓN
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
             name = "ID_INSCRIPCION",
@@ -30,7 +29,6 @@ public class Calificacion {
     )
     private Inscripcion inscripcion;
 
-    // CALIFICACIÓN CON UN DECIMAL
     @Column(
             name = "CALIFICACION",
             nullable = false,
@@ -42,7 +40,6 @@ public class Calificacion {
     @Column(name = "FECHA_REGISTRO")
     private LocalDate fechaRegistro;
 
-    // VALIDAR CALIFICACIÓN SEGÚN LA PRECISIÓN NUMBER(3,1)
     private static void validarDatos(Inscripcion inscripcion, BigDecimal valor) {
         if (inscripcion == null)
             throw new DatoInvalidoException("La inscripción es requerida");
@@ -52,14 +49,12 @@ public class Calificacion {
             throw new DatoInvalidoException("La calificación debe estar entre 0 y 99.9 y tener máximo un decimal");
     }
 
-    // CREAR CALIFICACIÓN
     public static Calificacion crear(Inscripcion inscripcion, BigDecimal valor) {
         validarDatos(inscripcion, valor);
         return Calificacion.builder().inscripcion(inscripcion)
                 .calificacion(valor).fechaRegistro(LocalDate.now()).build();
     }
 
-    // ACTUALIZAR CALIFICACIÓN SIN CAMBIAR LA INSCRIPCIÓN
     public void actualizar(BigDecimal valor) {
         validarDatos(this.inscripcion, valor);
         this.calificacion = valor;

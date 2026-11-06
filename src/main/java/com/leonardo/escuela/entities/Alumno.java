@@ -1,15 +1,17 @@
 
 package com.leonardo.escuela.entities;
 
-import com.leonardo.escuela.exceptions.DatoInvalidoException;
 import com.leonardo.escuela.utils.StringCustomUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @Entity
 @Table(name = "ALUMNOS", schema = "ESCUELA")
@@ -44,84 +46,90 @@ public class Alumno {
     @Column(name = "FECHA_INGRESO")
     private LocalDate fechaIngreso = LocalDate.now();
 
-    // UN ALUMNO PUEDE TENER VARIAS INSCRIPCIONES
     @Builder.Default
     @OneToMany(mappedBy = "alumno", fetch = FetchType.LAZY)
     private List<Inscripcion> inscripciones = new ArrayList<>();
 
-    // VALIDAR DATOS ANTES DE CREAR O ACTUALIZAR
+    public String obtenerNombreCompleto() {
+        return String.join(" ", nombre, apellidoPaterno, apellidoMaterno);
+    }
+
+    public void asignarDatosAcademicos(String email, String matricula) {
+
+        StringCustomUtils.validarTamanio(StringCustomUtils.limpiar(email), 1, 100,
+                "El email es requerido y debe tener entre 1 y 100 caracteres");
+        StringCustomUtils.validarTamanio(StringCustomUtils.limpiar(matricula), 10, 10,
+                "La matricula es requerida y debe tener 10 caracteres");
+
+        this.email = email.trim().toLowerCase(Locale.ROOT);
+        this.matricula = matricula.trim();
+    }
+
+    public BigDecimal calcularPromedio() {
+        List<BigDecimal> notas = inscripciones.stream()
+                .map(Inscripcion::getCalificacion)
+                .filter(Objects::nonNull)
+                .map(Calificacion::getCalificacion)
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (notas.isEmpty()) return BigDecimal.ZERO.setScale(2);
+
+        BigDecimal suma = notas.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        return suma.divide(BigDecimal.valueOf(notas.size()), 2, RoundingMode.HALF_UP);
+    }
+
     private static void validarDatos(
             String nombre,
             String apellidoPaterno,
-            String apellidoMaterno,
-            String email,
-            String matricula) {
+            String apellidoMaterno) {
 
         StringCustomUtils.validarTamanio(
-                limpiar(nombre), 1, 50,
+                StringCustomUtils.limpiar(nombre), 1, 50,
                 "El nombre es requerido y debe tener entre 1 y 50 caracteres");
 
         StringCustomUtils.validarTamanio(
-                limpiar(apellidoPaterno), 1, 50,
+                StringCustomUtils.limpiar(apellidoPaterno), 1, 50,
                 "El apellido paterno es requerido y debe tener entre 1 y 50 caracteres");
 
         StringCustomUtils.validarTamanio(
-                limpiar(apellidoMaterno), 1, 50,
+                StringCustomUtils.limpiar(apellidoMaterno), 1, 50,
                 "El apellido materno es requerido y debe tener entre 1 y 50 caracteres");
 
-        StringCustomUtils.validarTamanio(
-                limpiar(email), 8, 100,
-                "El email es requerido y debe tener entre 8 y 100 caracteres");
-
-        if (!email.trim().matches("^[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}$"))
-            throw new DatoInvalidoException("El email no tiene un formato válido");
-
-
-        StringCustomUtils.validarTamanio(
-                limpiar(matricula), 1, 10,
-                "La matrícula es requerida y debe tener entre 1 y 10 caracteres");
     }
 
-    // ELIMINAR ESPACIOS SIN PROVOCAR NULLPOINTEREXCEPTION
-    private static String limpiar(String texto) {
-        return texto == null ? null : texto.trim();
+    public boolean cambiaEnDatos(String nombre, String apellidoPaterno, String apellidoMaterno){
+        validarDatos(nombre, apellidoPaterno,apellidoMaterno);
+        return !this.nombre.equals(StringCustomUtils.limpiar(nombre))
+                || !this.apellidoPaterno.equals(StringCustomUtils.limpiar(apellidoPaterno))
+                || !this.apellidoMaterno.equals(StringCustomUtils.limpiar(apellidoMaterno));
     }
 
-    // CREAR ALUMNO
     public static Alumno crear(
             String nombre,
             String apellidoPaterno,
-            String apellidoMaterno,
-            String email,
-            String matricula) {
+            String apellidoMaterno) {
 
         validarDatos(nombre, apellidoPaterno,
-                apellidoMaterno, email, matricula);
+                apellidoMaterno);
 
         return Alumno.builder()
                 .nombre(nombre.trim())
                 .apellidoPaterno(apellidoPaterno.trim())
                 .apellidoMaterno(apellidoMaterno.trim())
-                .email(email.trim().toLowerCase(Locale.ROOT))
-                .matricula(matricula.trim())
                 .build();
     }
 
-    // ACTUALIZAR ALUMNO
     public void actualizar(
             String nombre,
             String apellidoPaterno,
-            String apellidoMaterno,
-            String email,
-            String matricula) {
+            String apellidoMaterno) {
 
         validarDatos(nombre, apellidoPaterno,
-                apellidoMaterno, email, matricula);
+                apellidoMaterno);
 
         this.nombre = nombre.trim();
         this.apellidoPaterno = apellidoPaterno.trim();
         this.apellidoMaterno = apellidoMaterno.trim();
-        this.email = email.trim().toLowerCase(Locale.ROOT);
-        this.matricula = matricula.trim();
     }
 }

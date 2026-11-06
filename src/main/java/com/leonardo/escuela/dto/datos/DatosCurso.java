@@ -1,4 +1,4 @@
-package com.leonardo.escuela.dto.dato;
+package com.leonardo.escuela.dto.datos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

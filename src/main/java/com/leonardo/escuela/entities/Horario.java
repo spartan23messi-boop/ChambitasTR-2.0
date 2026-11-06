@@ -24,7 +24,6 @@ public class Horario {
     @Column(name = "ID_HORARIO")
     private Long idHorario;
 
-    // GRUPO AL QUE PERTENECE EL HORARIO
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ID_GRUPO", nullable = false)
     private Grupo grupo;
@@ -32,14 +31,12 @@ public class Horario {
     @Column(name = "DIA", nullable = false, length = 15)
     private String dia;
 
-    // ORACLE GUARDA LAS HORAS COMO VARCHAR2(5)
     @Column(name = "HORA_INICIO", nullable = false, length = 5)
     private String horaInicio;
 
     @Column(name = "HORA_FIN", nullable = false, length = 5)
     private String horaFin;
 
-    // VALIDAR DÍA Y HORAS DEL GRUPO
     private static void validarDatos(Grupo grupo, String dia, String inicio, String fin) {
         if (grupo == null)
             throw new DatoInvalidoException("El grupo es requerido");
@@ -73,14 +70,12 @@ public class Horario {
         }
     }
 
-    // CREAR HORARIO
     public static Horario crear(Grupo grupo, String dia, String inicio, String fin) {
         validarDatos(grupo, dia, inicio, fin);
         return Horario.builder().grupo(grupo).dia(normalizarDia(dia))
                 .horaInicio(inicio).horaFin(fin).build();
     }
 
-    // ACTUALIZAR HORARIO
     public void actualizar(Grupo grupo, String dia, String inicio, String fin) {
         validarDatos(grupo, dia, inicio, fin);
         this.grupo = grupo;

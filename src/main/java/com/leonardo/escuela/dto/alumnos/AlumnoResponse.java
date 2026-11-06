@@ -1,6 +1,6 @@
-package com.leonardo.escuela.dto.alumno;
+package com.leonardo.escuela.dto.alumnos;
 
-import com.leonardo.escuela.dto.dato.DatosCalificacion;
+import com.leonardo.escuela.dto.datos.DatosCalificacion;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;

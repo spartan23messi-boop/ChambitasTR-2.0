@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 @Slf4j
 public class ServiceUtils {
 
-    // BUSCAR ENTIDAD O LANZAR EXCEPCIÓN
     public static <E, ID> E obtenerEntidadOException(
             JpaRepository<E, ID> repository,
             ID id,

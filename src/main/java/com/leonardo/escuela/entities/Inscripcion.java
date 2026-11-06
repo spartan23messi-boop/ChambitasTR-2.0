@@ -27,12 +27,10 @@ public class Inscripcion {
     @Column(name = "ID_INSCRIPCION")
     private Long idInscripcion;
 
-    // ALUMNO QUE REALIZA LA INSCRIPCIÓN
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ID_ALUMNO", nullable = false)
     private Alumno alumno;
 
-    // GRUPO AL QUE SE INSCRIBE
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ID_GRUPO", nullable = false)
     private Grupo grupo;
@@ -41,23 +39,19 @@ public class Inscripcion {
     @Column(name = "FECHA_INSCRIPCION")
     private LocalDate fechaInscripcion = LocalDate.now();
 
-    // UNA INSCRIPCIÓN PUEDE TENER UNA CALIFICACIÓN
     @OneToOne(mappedBy = "inscripcion", fetch = FetchType.LAZY)
     private Calificacion calificacion;
 
-    // VALIDAR ALUMNO Y GRUPO
     private static void validarDatos(Alumno alumno, Grupo grupo) {
         if (alumno == null || grupo == null)
             throw new DatoInvalidoException("El alumno y el grupo son requeridos");
     }
 
-    // CREAR INSCRIPCIÓN
     public static Inscripcion crear(Alumno alumno, Grupo grupo) {
         validarDatos(alumno, grupo);
         return Inscripcion.builder().alumno(alumno).grupo(grupo).build();
     }
 
-    // ACTUALIZAR INSCRIPCIÓN (SIN MODIFICAR SU FECHA)
     public void actualizar(Alumno alumno, Grupo grupo) {
         validarDatos(alumno, grupo);
         this.alumno = alumno;

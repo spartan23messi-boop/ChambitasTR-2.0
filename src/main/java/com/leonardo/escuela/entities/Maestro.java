@@ -39,17 +39,14 @@ public class Maestro {
     @Column(name = "TELEFONO", nullable = false, unique = true, length = 10)
     private String telefono;
 
-    // RELACIÓN: UN MAESTRO PUEDE TENER VARIOS GRUPOS
     @Builder.Default
     @OneToMany(mappedBy = "maestro", fetch = FetchType.LAZY)
     private List<Grupo> grupos = new ArrayList<>();
 
-    // CONSTRUIR NOMBRE COMPLETO PARA LAS RESPUESTAS
     public String obtenerNombreCompleto() {
         return String.join(" ", nombre, apellidoPaterno, apellidoMaterno);
     }
 
-    // VALIDAR DATOS DEL MAESTRO
     private static void validarDatos(
             String nombre,
             String apellidoPaterno,
@@ -57,7 +54,6 @@ public class Maestro {
             String email,
             String telefono) {
 
-        // VALIDAR NOMBRE Y APELLIDOS
         StringCustomUtils.validarTamanio(nombre == null ? null : nombre.trim(), 1, 50,
                 "El nombre es requerido y debe tener entre 1 y 50 caracteres");
 
@@ -67,7 +63,6 @@ public class Maestro {
         StringCustomUtils.validarTamanio(apellidoMaterno == null ? null : apellidoMaterno.trim(), 1, 50,
                 "El apellido materno es requerido y debe tener entre 1 y 50 caracteres");
 
-        // VALIDAR EMAIL
         StringCustomUtils.validarTamanio(email == null ? null : email.trim(), 8, 100,
                 "El email es requerido y debe tener entre 8 y 100 caracteres");
 
@@ -75,8 +70,6 @@ public class Maestro {
             throw new DatoInvalidoException(
                     "El email no tiene un formato válido");
 
-
-        // VALIDAR TELÉFONO
         StringCustomUtils.validarTamanio(telefono == null ? null : telefono.trim(), 10, 10,
                 "El teléfono debe tener exactamente 10 dígitos");
 
@@ -86,7 +79,6 @@ public class Maestro {
         }
     }
 
-    // CREAR MAESTRO
     public static Maestro crear(
             String nombre,
             String apellidoPaterno,
@@ -94,11 +86,9 @@ public class Maestro {
             String email,
             String telefono) {
 
-        // VALIDAR ANTES DE CREAR
         validarDatos(nombre, apellidoPaterno,
                 apellidoMaterno, email, telefono);
 
-        // CONSTRUIR MAESTRO
         return Maestro.builder()
                 .nombre(nombre.trim())
                 .apellidoPaterno(apellidoPaterno.trim())
@@ -108,7 +98,6 @@ public class Maestro {
                 .build();
     }
 
-    // ACTUALIZAR MAESTRO
     public void actualizar(
             String nombre,
             String apellidoPaterno,
@@ -116,11 +105,9 @@ public class Maestro {
             String email,
             String telefono) {
 
-        // VALIDAR ANTES DE MODIFICAR
         validarDatos(nombre, apellidoPaterno,
                 apellidoMaterno, email, telefono);
 
-        // ACTUALIZAR ATRIBUTOS
         this.nombre = nombre.trim();
         this.apellidoPaterno = apellidoPaterno.trim();
         this.apellidoMaterno = apellidoMaterno.trim();

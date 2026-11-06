@@ -16,38 +16,37 @@ import java.util.List;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-    // 404: el recurso no existe
+
     @ExceptionHandler(RecursoNoEncontradoException.class)
     public ProblemDetail handleNoEncontrado(RecursoNoEncontradoException e){
         log.warn("No encontrado: {}", e.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND,e.getMessage());
     }
-    // 400: el cliente mandó un dato inválido
+
     @ExceptionHandler(DatoInvalidoException.class)
     public ProblemDetail handleDatoInvalido(DatoInvalidoException e){
         log.warn("Dato Inválido: {}", e.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,e.getMessage());
     }
-    // 409: regla de negocio violada (duplicado, etc.)
+
     @ExceptionHandler(ConflictoException.class)
     public ProblemDetail handleConflicto(ConflictoException e){
         log.warn("Conflicto: {}", e.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,e.getMessage());
     }
-    // 409: la base de datos rechazó el dato (unique, foreign key...)
+
     @ExceptionHandler(EntidadRelacionadaException.class)
     public ProblemDetail handleIntegridad(EntidadRelacionadaException e){
         log.warn("Relacion encontrada: {}", e.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,e.getMessage());
     }
-    // 409: la base de datos rechazó el dato (unique, foreign key...)
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleIntegridad(DataIntegrityViolationException e){
         log.warn("Integridad de datos: {}", e.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,e.getMessage());
     }
 
-    // 400: falló @Valid en el @RequestBody
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException e, HttpHeaders headers,
@@ -62,7 +61,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(e, pd, headers, status, request);
     }
 
-    // 400: falló @Positive, @Min... en un @PathVariable o @RequestParam
     @Override
     protected ResponseEntity<Object> handleHandlerMethodValidationException(
             HandlerMethodValidationException e, HttpHeaders headers,
@@ -77,9 +75,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(e, pd, headers, status, request);
     }
 
-    // ---------- Red de seguridad ----------
 
-    // 500: cualquier error que no previmos
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGeneral(Exception e) {
         log.error("Error interno", e);

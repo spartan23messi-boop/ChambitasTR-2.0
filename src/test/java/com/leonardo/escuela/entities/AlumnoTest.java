@@ -1,118 +1,94 @@
-
 package com.leonardo.escuela.entities;
 
 import com.leonardo.escuela.exceptions.DatoInvalidoException;
 import org.junit.jupiter.api.Test;
+import java.math.BigDecimal;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AlumnoTest {
 
-    // ---------- CREAR ----------
-
+    // CREAR: DATOS VALIDOS
     @Test
-    void CrearAlumno_cuandoDatosSonValidos() {
-
-        // Arrange
-        String nombre = "Ana";
-        String paterno = "García";
-        String materno = "López";
-        String email = "ana@escuela.com";
-        String matricula = "A2026001";
-
-        // Act
-        Alumno alumno = Alumno.crear(
-                nombre, paterno, materno, email, matricula);
-
-        // Assert
-        assertThat(alumno.getNombre()).isEqualTo(nombre);
-        assertThat(alumno.getApellidoPaterno()).isEqualTo(paterno);
-        assertThat(alumno.getApellidoMaterno()).isEqualTo(materno);
-        assertThat(alumno.getEmail()).isEqualTo(email);
-        assertThat(alumno.getMatricula()).isEqualTo(matricula);
+    void crearAlumno_cuandoDatosSonValidos() {
+        Alumno alumno = Alumno.crear("Ana", "García", "López");
+        alumno.asignarDatosAcademicos("ana@escuela.com", "GALOAN2601");
+        assertThat(alumno.getNombre()).isEqualTo("Ana");
+        assertThat(alumno.getEmail()).isEqualTo("ana@escuela.com");
+        assertThat(alumno.getMatricula()).isEqualTo("GALOAN2601");
         assertThat(alumno.getFechaIngreso()).isNotNull();
         assertThat(alumno.getInscripciones()).isEmpty();
     }
 
+    // CREAR: NOMBRE INVALIDO
     @Test
-    void crearAlumno_debeRechazarNombreVacio() {
-
-        // Act + Assert
-        assertThatThrownBy(() -> Alumno.crear(
-                "   ", "García", "López",
-                "ana@escuela.com", "A2026001"
-        )).isInstanceOf(DatoInvalidoException.class);
+    void crearAlumno_rechazaNombreVacio() {
+        assertThatThrownBy(() -> Alumno.crear("", "García", "López"))
+                .isInstanceOf(DatoInvalidoException.class);
     }
 
-    // ---------- ACTUALIZAR ----------
-
+    // ACTUALIZAR: DATOS VALIDOS, IDENTIFICADORES SIN CAMBIOS
     @Test
-    void actualizar_debeModificarDatos_cuandoSonValidos() {
-
-        // Arrange
-        Alumno alumno = Alumno.crear(
-                "Ana", "García", "López",
-                "ana@escuela.com", "A2026001");
-
-        // Act
-        alumno.actualizar(
-                "María", "Pérez", "Torres",
-                "maria@escuela.com", "A2026002");
-
-        // Assert
+    void actualizarAlumno_modificaNombresPeroConservaDatosAcademicos() {
+        Alumno alumno = Alumno.crear("Ana", "García", "López");
+        alumno.asignarDatosAcademicos("ana@escuela.com", "GALOAN2601");
+        alumno.actualizar("María", "Pérez", "Torres");
         assertThat(alumno.getNombre()).isEqualTo("María");
         assertThat(alumno.getApellidoPaterno()).isEqualTo("Pérez");
-        assertThat(alumno.getApellidoMaterno()).isEqualTo("Torres");
-        assertThat(alumno.getEmail()).isEqualTo("maria@escuela.com");
-        assertThat(alumno.getMatricula()).isEqualTo("A2026002");
+        assertThat(alumno.getEmail()).isEqualTo("ana@escuela.com");
+        assertThat(alumno.getMatricula()).isEqualTo("GALOAN2601");
     }
 
+    // ACTUALIZAR: DATOS INVALIDOS
     @Test
-    void actualizar_debeConservarDatos_cuandoEmailEsInvalido() {
+    void actualizarAlumno_noModificaSiApellidoEsInvalido() {
+        Alumno alumno = Alumno.crear("Ana", "García", "López");
+        assertThatThrownBy(() -> alumno.actualizar("María", "  ", "Torres"))
+                .isInstanceOf(DatoInvalidoException.class);
+        assertThat(alumno.getNombre()).isEqualTo("Ana");
+    }
 
-        // Arrange
-        Alumno alumno = Alumno.crear(
-                "Ana", "García", "López",
-                "ana@escuela.com", "A2026001");
-
-        // Act + Assert
-        assertThatThrownBy(() -> alumno.actualizar(
-                "María", "Pérez", "Torres",
-                "correo-invalido", "A2026002"
-        )).isInstanceOf(DatoInvalidoException.class);
-
-        // VERIFICAR QUE NO SE MODIFICÓ
+    // VALIDACION: LIMPIEZA DE ESPACIOS Y CORREO
+    @Test
+    void asignarDatosAcademicos_limpiaEspaciosYMinusculas() {
+        Alumno alumno = Alumno.crear(" Ana ", " García ", " López ");
+        alumno.asignarDatosAcademicos(" ANA@ESCUELA.COM ", " GALOAN2601 ");
         assertThat(alumno.getNombre()).isEqualTo("Ana");
         assertThat(alumno.getEmail()).isEqualTo("ana@escuela.com");
-        assertThat(alumno.getMatricula()).isEqualTo("A2026001");
+        assertThat(alumno.getMatricula()).isEqualTo("GALOAN2601");
     }
 
-    // ---------- VALIDACIONES ----------
-
+    // VALIDACION: MATRICULA INVALIDA
     @Test
-    void validarDatos_debeAceptarEmailYMatriculaValidos() {
-
-        // Act
-        Alumno alumno = Alumno.crear(
-                " Ana ", " García ", " López ",
-                " ANA@ESCUELA.COM ", " A2026001 ");
-
-        // Assert
-        assertThat(alumno.getNombre()).isEqualTo("Ana");
-        assertThat(alumno.getEmail()).isEqualTo("ana@escuela.com");
-        assertThat(alumno.getMatricula()).isEqualTo("A2026001");
+    void asignarDatosAcademicos_rechazaMatriculaDemasiadoLarga() {
+        Alumno alumno = Alumno.crear("Ana", "García", "López");
+        assertThatThrownBy(() -> alumno.asignarDatosAcademicos(
+                "ana@escuela.com", "GALOAN260123"))
+                .isInstanceOf(DatoInvalidoException.class);
+    }
+    @Test
+    void calcularPromedio_sinCalificacionesDevuelveCeroConDosDecimales() {
+        Alumno alumno = Alumno.crear("Ana", "García", "López");
+        assertThat(alumno.calcularPromedio()).isEqualByComparingTo("0.00");
+        assertThat(alumno.calcularPromedio().scale()).isEqualTo(2);
     }
 
     @Test
-    void validarDatos_debeRechazarMatriculaMuyLarga() {
+    void calcularPromedio_ignoraInscripcionesSinNota() {
+        Alumno alumno = Alumno.crear("Ana", "García", "López");
+        Inscripcion conNota = Inscripcion.builder().build();
+        conNota.setCalificacion(Calificacion.builder().calificacion(new BigDecimal("8.0")).build());
+        Inscripcion sinNota = Inscripcion.builder().build();
+        alumno.setInscripciones(List.of(conNota, sinNota));
+        assertThat(alumno.calcularPromedio()).isEqualByComparingTo("8.00");
+    }
 
-        // Act + Assert
-        assertThatThrownBy(() -> Alumno.crear(
-                "Ana", "García", "López",
-                "ana@escuela.com", "A20260012345"
-        ))
-                .isInstanceOf(DatoInvalidoException.class)
-                .hasMessageContaining("matrícula");
+    @Test
+    void cambiaEnDatos_noConsideraDiferentesEspaciosComoCambios() {
+        Alumno alumno = Alumno.crear("Ana", "García", "López");
+        assertThat(alumno.cambiaEnDatos(" Ana ", " García ", "López")).isFalse();
+        assertThat(alumno.cambiaEnDatos("Ana", "García", "Pérez")).isTrue();
     }
 }

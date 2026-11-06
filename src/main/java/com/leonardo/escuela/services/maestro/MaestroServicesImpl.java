@@ -4,6 +4,7 @@ import com.leonardo.escuela.dto.maestros.MaestroRequest;
 import com.leonardo.escuela.dto.maestros.MaestroResponse;
 import com.leonardo.escuela.entities.Maestro;
 import com.leonardo.escuela.exceptions.ConflictoException;
+import com.leonardo.escuela.exceptions.DatoInvalidoException;
 import com.leonardo.escuela.exceptions.EntidadRelacionadaException;
 import com.leonardo.escuela.mapper.MaestroMapper;
 import com.leonardo.escuela.repositories.GrupoRepository;
@@ -15,24 +16,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.ConnectException;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional // en caso de que algún proceso falle hace un roll back para que los datos no queden incoherentes
-@Slf4j//Simple loging facade for java-> crea un logger en la consola
-public class MaestroServicesImpl implements MestroService {
+@Transactional
+@Slf4j
+public class MaestroServicesImpl implements MaestroService {
 
-    // DEPENDENCIAS
     private final MaestroRepository maestroRepository;
     private final GrupoRepository grupoRepository;
     private final MaestroMapper maestroMapper;
 
-    // LISTAR MAESTROS
     @Override
     @Transactional(readOnly = true)
     public List<MaestroResponse> Listar() {
+        log.info("Consultando maestros");
 
         return maestroRepository.findAll()
                 .stream()
@@ -42,6 +41,7 @@ public class MaestroServicesImpl implements MestroService {
 
     @Override
     public MaestroResponse obtenerPorId(Long id) {
+        log.info("Consultando maestro con ID {}", id);
         return maestroMapper.entidadAResponse(obtenerMaestro(id));
     }
 
@@ -50,21 +50,23 @@ public class MaestroServicesImpl implements MestroService {
 
         log.info("Registrando nuevo maestro...");
 
+        validarRequest(request);
         validarDatosUnicos(request);
 
         Maestro maestro = maestroMapper.requestAEntidad(request);
 
         maestroRepository.saveAndFlush(maestro);
 
-        log.info("Nuevo maestro {} registrado",maestro.obtenerNombreCompleto());
+        log.info("Maestro registrado con ID {}", maestro.getIdMaestro());
 
         return maestroMapper.entidadAResponse(maestro);
     }
 
     @Override
     public MaestroResponse actualizar(MaestroRequest request, Long id) {
-        Maestro maestro= obtenerMaestro(id);
-        log.info("Actualizando maestro con id: {}",id);
+        validarRequest(request);
+        log.info("Actualizando maestro con ID {}", id);
+        Maestro maestro = obtenerMaestro(id);
         validarCambiosUnicos(request,id);
         maestro.actualizar(
                 request.nombre(),
@@ -74,7 +76,7 @@ public class MaestroServicesImpl implements MestroService {
                 request.telefono());
 
         maestroRepository.saveAndFlush(maestro);
-        log.info("Maestro {} actualizando", maestro.obtenerNombreCompleto());
+        log.info("Maestro actualizado con ID {}", id);
         return maestroMapper.entidadAResponse(maestro);
     }
 
@@ -93,16 +95,20 @@ public class MaestroServicesImpl implements MestroService {
         maestroRepository.delete(maestro);
         maestroRepository.flush();
 
-        log.info("Maestro {} eliminado",maestro.obtenerNombreCompleto());
+        log.info("Maestro eliminado con ID {}", id);
 
     }
 
+
+    private void validarRequest(MaestroRequest request) {
+        if (request == null) throw new DatoInvalidoException("Los datos del maestro son requeridos");
+    }
 
     private Maestro obtenerMaestro(Long id){
         return ServiceUtils.obtenerEntidadOException(maestroRepository,id,Maestro.class);
     }
 
-    public void validarDatosUnicos(MaestroRequest request){
+    private void validarDatosUnicos(MaestroRequest request){
         log.info("validando email unico....");
 
         if(maestroRepository.existsByEmailIgnoreCase(request.email().trim()))
@@ -113,7 +119,7 @@ public class MaestroServicesImpl implements MestroService {
         if(maestroRepository.existsByTelefono(request.telefono().trim()))
             throw new ConflictoException("Ya existe un maestro regitrado con el telefono: "+request.telefono());
     }
-    public void validarCambiosUnicos(MaestroRequest request, Long id) {
+    private void validarCambiosUnicos(MaestroRequest request, Long id) {
 
         log.info("Validando cambio en email único...");
 

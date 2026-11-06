@@ -1,6 +1,6 @@
 package com.leonardo.escuela.dto.maestros;
 
-import com.leonardo.escuela.dto.dato.DatosCurso;
+import com.leonardo.escuela.dto.datos.DatosCurso;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 

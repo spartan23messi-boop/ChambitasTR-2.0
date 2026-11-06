@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
-    // CONFIGURAR INFORMACIÓN DE SWAGGER
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()

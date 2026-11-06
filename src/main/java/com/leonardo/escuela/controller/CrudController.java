@@ -38,7 +38,6 @@ public class CrudController<RQ, RS, S extends CrudServices<RQ, RS>> {
 
     protected final S service;
 
-    // LISTAR
     @GetMapping
     @Operation(summary = "Listar registros")
     @ApiResponse(responseCode = "200", description = "Listado obtenido")
@@ -47,18 +46,16 @@ public class CrudController<RQ, RS, S extends CrudServices<RQ, RS>> {
         return ResponseEntity.ok(service.Listar());
     }
 
-    // OBTENER REGISTRO POR ID
     @GetMapping("/{id}")
     @Operation(summary = "Obtener registro por ID")
     @ApiResponse(responseCode = "200", description = "Registro encontrado")
     @ApiResponse(responseCode = "404", description = "Registro no encontrado")
     public ResponseEntity<RS> obtenerPorId(
-            @PathVariable @Positive Long id) {
+            @PathVariable("id") @Positive Long id) {
 
         return ResponseEntity.ok(service.obtenerPorId(id));
     }
 
-    // REGISTRAR
     @PostMapping
     @Operation(summary = "Registrar nuevo registro")
     @ApiResponse(responseCode = "201", description = "Registro creado")
@@ -70,25 +67,23 @@ public class CrudController<RQ, RS, S extends CrudServices<RQ, RS>> {
         return ResponseEntity.status(201).body(respuesta);
     }
 
-    // ACTUALIZAR
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar registro")
     @ApiResponse(responseCode = "200", description = "Registro actualizado")
     @ApiResponse(responseCode = "404", description = "Registro no encontrado")
     public ResponseEntity<RS> actualizar(
-            @PathVariable @Positive Long id,
+            @PathVariable("id") @Positive Long id,
             @Valid @RequestBody RQ request) {
 
         return ResponseEntity.ok(service.actualizar(request, id));
     }
 
-    // ELIMINAR REGISTRO
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar registro")
     @ApiResponse(responseCode = "204", description = "Registro eliminado")
     @ApiResponse(responseCode = "404", description = "Registro no encontrado")
     public ResponseEntity<Void> eliminar(
-            @PathVariable @Positive Long id) {
+            @PathVariable("id") @Positive Long id) {
 
         service.eliminar(id);
 

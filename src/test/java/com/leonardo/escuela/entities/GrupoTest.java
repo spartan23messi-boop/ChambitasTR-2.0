@@ -11,32 +11,33 @@ private final Curso curso = new Curso();
     private final Maestro maestro = new Maestro();
     private final Aula aula = new Aula();
     @Test void crear_debeAsignarRelacionesValidas() {
-        Grupo grupo = Grupo.crear(curso, maestro, aula, " 2026-A ");
+        Grupo grupo = Grupo.crear(curso, maestro, aula, " 2026-01 ");
         assertThat(grupo.getCurso()).isSameAs(curso);
         assertThat(grupo.getMaestro()).isSameAs(maestro);
         assertThat(grupo.getAula()).isSameAs(aula);
-        assertThat(grupo.getPeriodo()).isEqualTo("2026-A");
+        assertThat(grupo.getPeriodo()).isEqualTo("2026-01");
     }
     @Test void crear_debeRechazarMaestroNulo() {
-        assertThatThrownBy(() -> Grupo.crear(curso, null, aula, "2026-A"))
+        assertThatThrownBy(() -> Grupo.crear(curso, null, aula, "2026-01"))
                 .isInstanceOf(DatoInvalidoException.class);
     }
     @Test void actualizar_debeCambiarPeriodoYAula() {
-        Grupo grupo = Grupo.crear(curso, maestro, aula, "2026-A");
+        Grupo grupo = Grupo.crear(curso, maestro, aula, "2026-01");
         Aula otraAula = new Aula();
-        grupo.actualizar(curso, maestro, otraAula, "2026-B");
-        assertThat(grupo.getPeriodo()).isEqualTo("2026-B");
+        grupo.actualizar(curso, maestro, otraAula, "2026-02");
+        assertThat(grupo.getPeriodo()).isEqualTo("2026-02");
         assertThat(grupo.getAula()).isSameAs(otraAula);
     }
     @Test void actualizar_debeConservarDatosSiCursoNulo() {
-        Grupo grupo = Grupo.crear(curso, maestro, aula, "2026-A");
-        assertThatThrownBy(() -> grupo.actualizar(null, maestro, aula, "2026-B"))
+        Grupo grupo = Grupo.crear(curso, maestro, aula, "2026-01");
+        assertThatThrownBy(() -> grupo.actualizar(null, maestro, aula, "2026-02"))
                 .isInstanceOf(DatoInvalidoException.class);
         assertThat(grupo.getCurso()).isSameAs(curso);
-        assertThat(grupo.getPeriodo()).isEqualTo("2026-A");
+        assertThat(grupo.getPeriodo()).isEqualTo("2026-01");
     }
-    @Test void validarDatos_debeAceptarPeriodoCorto() {
-        assertThat(Grupo.crear(curso, maestro, aula, "A").getPeriodo()).isEqualTo("A");
+    @Test void validarDatos_debeRechazarPeriodoCorto() {
+        assertThatThrownBy(() -> Grupo.crear(curso, maestro, aula, "2026-1"))
+                .isInstanceOf(DatoInvalidoException.class);
     }
     @Test void validarDatos_debeRechazarPeriodoVacio() {
         assertThatThrownBy(() -> Grupo.crear(curso, maestro, aula, "   "))

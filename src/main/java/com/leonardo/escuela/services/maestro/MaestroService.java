@@ -4,6 +4,6 @@ import com.leonardo.escuela.dto.maestros.MaestroRequest;
 import com.leonardo.escuela.dto.maestros.MaestroResponse;
 import com.leonardo.escuela.services.CrudServices;
 
-public interface MestroService extends CrudServices<MaestroRequest, MaestroResponse> {
+public interface MaestroService extends CrudServices<MaestroRequest, MaestroResponse> {
 
 }
