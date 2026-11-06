@@ -1,20 +1,26 @@
+
 package com.leonardo.escuela.entities;
+
+import com.leonardo.escuela.exceptions.DatoInvalidoException;
+import com.leonardo.escuela.utils.StringCustomUtils;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 @Entity
 @Table(name = "MAESTROS", schema = "ESCUELA")
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Maestro {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_MAESTRO")
     private Long idMaestro;
 
@@ -33,7 +39,79 @@ public class Maestro {
     @Column(name = "TELEFONO", nullable = false, unique = true, length = 10)
     private String telefono;
 
-    /*@Builder.Default
+    @Builder.Default
     @OneToMany(mappedBy = "maestro", fetch = FetchType.LAZY)
-    private Lis=<Grupo> grupos = new ArrayList<>();*/
+    private List<Grupo> grupos = new ArrayList<>();
+
+    public String obtenerNombreCompleto() {
+        return String.join(" ", nombre, apellidoPaterno, apellidoMaterno);
+    }
+
+    private static void validarDatos(
+            String nombre,
+            String apellidoPaterno,
+            String apellidoMaterno,
+            String email,
+            String telefono) {
+
+        StringCustomUtils.validarTamanio(nombre == null ? null : nombre.trim(), 1, 50,
+                "El nombre es requerido y debe tener entre 1 y 50 caracteres");
+
+        StringCustomUtils.validarTamanio(apellidoPaterno == null ? null : apellidoPaterno.trim(), 1, 50,
+                "El apellido paterno es requerido y debe tener entre 1 y 50 caracteres");
+
+        StringCustomUtils.validarTamanio(apellidoMaterno == null ? null : apellidoMaterno.trim(), 1, 50,
+                "El apellido materno es requerido y debe tener entre 1 y 50 caracteres");
+
+        StringCustomUtils.validarTamanio(email == null ? null : email.trim(), 8, 100,
+                "El email es requerido y debe tener entre 8 y 100 caracteres");
+
+        if (!email.trim().matches("^[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}$"))
+            throw new DatoInvalidoException(
+                    "El email no tiene un formato válido");
+
+        StringCustomUtils.validarTamanio(telefono == null ? null : telefono.trim(), 10, 10,
+                "El teléfono debe tener exactamente 10 dígitos");
+
+        if (!telefono.trim().matches("\\d{10}")) {
+            throw new DatoInvalidoException(
+                    "El teléfono debe contener 10 dígitos numéricos");
+        }
+    }
+
+    public static Maestro crear(
+            String nombre,
+            String apellidoPaterno,
+            String apellidoMaterno,
+            String email,
+            String telefono) {
+
+        validarDatos(nombre, apellidoPaterno,
+                apellidoMaterno, email, telefono);
+
+        return Maestro.builder()
+                .nombre(nombre.trim())
+                .apellidoPaterno(apellidoPaterno.trim())
+                .apellidoMaterno(apellidoMaterno.trim())
+                .email(email.trim().toLowerCase(Locale.ROOT))
+                .telefono(telefono.trim())
+                .build();
+    }
+
+    public void actualizar(
+            String nombre,
+            String apellidoPaterno,
+            String apellidoMaterno,
+            String email,
+            String telefono) {
+
+        validarDatos(nombre, apellidoPaterno,
+                apellidoMaterno, email, telefono);
+
+        this.nombre = nombre.trim();
+        this.apellidoPaterno = apellidoPaterno.trim();
+        this.apellidoMaterno = apellidoMaterno.trim();
+        this.email = email.trim().toLowerCase(Locale.ROOT);
+        this.telefono = telefono.trim();
+    }
 }

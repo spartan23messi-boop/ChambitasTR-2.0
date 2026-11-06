@@ -1,7 +1,9 @@
+
 package com.leonardo.escuela.entities;
+
+import com.leonardo.escuela.exceptions.DatoInvalidoException;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDate;
 
 @Entity
@@ -14,9 +16,10 @@ import java.time.LocalDate;
         )
 )
 @Getter
-@Builder
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Inscripcion {
 
     @Id
@@ -24,18 +27,36 @@ public class Inscripcion {
     @Column(name = "ID_INSCRIPCION")
     private Long idInscripcion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ID_ALUMNO", nullable = false)
     private Alumno alumno;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ID_GRUPO", nullable = false)
     private Grupo grupo;
 
     @Builder.Default
-    @Column(name = "FECHA_INSCRIPCION", nullable = false)
-    private LocalDate fechaInscripcion=LocalDate.now();
+    @Column(name = "FECHA_INSCRIPCION")
+    private LocalDate fechaInscripcion = LocalDate.now();
 
-    @OneToOne(mappedBy = "Inscripcion")
+    @OneToOne(mappedBy = "inscripcion", fetch = FetchType.LAZY)
     private Calificacion calificacion;
+
+    private static void validarDatos(Alumno alumno, Grupo grupo) {
+        if (alumno == null || grupo == null)
+            throw new DatoInvalidoException("El alumno y el grupo son requeridos");
+    }
+
+    public static Inscripcion crear(Alumno alumno, Grupo grupo) {
+        validarDatos(alumno, grupo);
+        return Inscripcion.builder().alumno(alumno).grupo(grupo).build();
+    }
+
+    public void actualizar(Alumno alumno, Grupo grupo) {
+        validarDatos(alumno, grupo);
+        this.alumno = alumno;
+        this.grupo = grupo;
+    }
+
+
 }

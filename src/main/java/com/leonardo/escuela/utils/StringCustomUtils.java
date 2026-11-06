@@ -13,13 +13,17 @@ public class StringCustomUtils {
             throw new DatoInvalidoException(mesnaje);
             }
 
-
     public static void validarTamanio(String texto,Integer min, Integer max, String mensaje){
         validarNoVacio(texto,mensaje);
 
         if(texto.length()<min || texto.length()>max)
             throw new DatoInvalidoException(mensaje);
     }
+
+    public static String limpiar(String texto) {
+        return texto == null ? null : texto.trim();
+    }
+
 
     public static String normalizarTexto(String texto){
         return texto.toLowerCase()
