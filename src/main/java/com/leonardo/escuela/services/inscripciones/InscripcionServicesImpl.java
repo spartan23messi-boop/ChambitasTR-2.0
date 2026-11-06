@@ -14,7 +14,7 @@ import com.leonardo.escuela.repositories.CalificacionRepository;
 import com.leonardo.escuela.repositories.GrupoRepository;
 import com.leonardo.escuela.repositories.InscripcionRepository;
 import com.leonardo.escuela.utils.ServiceUtils;
-import com.leonardo.escuela.utils.AlumnoLookup;
+import com.leonardo.escuela.utils.ServiceUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,7 +56,7 @@ public class InscripcionServicesImpl implements InscripcionServices {
         validarRequest(request);
         log.info("Registrando inscripción para alumno {} y grupo {}", request.idAlumno(), request.idGrupo());
 
-        Alumno alumno = AlumnoLookup.obtener(alumnoRepository, request.idAlumno());
+        Alumno alumno = ServiceUtils.obtenerAlumno(alumnoRepository, request.idAlumno());
         Grupo grupo = obtenerGrupo(request.idGrupo());
         validarUnicidad(request, null);
 
@@ -69,7 +69,7 @@ public class InscripcionServicesImpl implements InscripcionServices {
         log.info("Actualizando inscripción {}", id);
 
         Inscripcion inscripcion = obtener(id);
-        Alumno alumno = AlumnoLookup.obtener(alumnoRepository, request.idAlumno());
+        Alumno alumno = ServiceUtils.obtenerAlumno(alumnoRepository, request.idAlumno());
         Grupo grupo = obtenerGrupo(request.idGrupo());
 
         if (Objects.equals(inscripcion.getAlumno().getIdAlumno(), request.idAlumno())
