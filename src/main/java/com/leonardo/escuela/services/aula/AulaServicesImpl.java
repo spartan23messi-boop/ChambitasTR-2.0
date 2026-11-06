@@ -10,6 +10,7 @@ import com.leonardo.escuela.mapper.AulaMapper;
 import com.leonardo.escuela.repositories.AulaRepository;
 import com.leonardo.escuela.repositories.GrupoRepository;
 import com.leonardo.escuela.utils.ServiceUtils;
+import com.leonardo.escuela.utils.StringCustomUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,7 @@ public class AulaServicesImpl implements AulaServices {
         log.info("Registrando aula");
         validarRequest(request);
         Aula aula = aulaMapper.requestAEntidad(request);
-        validarNombreUnico(aula.getNombre(), null);
+        validarUnicidad(request, null);
         return guardarYResponder(aula);
     }
 
@@ -61,7 +62,7 @@ public class AulaServicesImpl implements AulaServices {
         if (!aula.cambiaEnDatos(request.nombre(), request.capacidad()))
             return aulaMapper.entidadAResponse(aula);
 
-        validarNombreUnico(request.nombre().trim(), id);
+        validarUnicidad(request, id);
         aula.actualizar(request.nombre(), request.capacidad());
 
         return guardarYResponder(aula);
@@ -90,7 +91,8 @@ public class AulaServicesImpl implements AulaServices {
             );
     }
 
-    private void validarNombreUnico(String nombre, Long id) {
+    private void validarUnicidad(AulaRequest request, Long id) {
+        String nombre = StringCustomUtils.limpiar(request.nombre());
         boolean duplicado = id == null
                 ? aulaRepository.existsByNombreIgnoreCase(nombre)
                 : aulaRepository.existsByNombreIgnoreCaseAndIdAulaNot(nombre, id);
@@ -109,7 +111,7 @@ public class AulaServicesImpl implements AulaServices {
 
     private AulaResponse guardarYResponder(Aula aula) {
         Aula guardado = aulaRepository.saveAndFlush(aula);
-        log.info("Aula guardado con ID {}", guardado.getIdAula());
+        log.info("Aula guardada con ID {}", guardado.getIdAula());
         return aulaMapper.entidadAResponse(guardado);
     }
 }

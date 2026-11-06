@@ -9,7 +9,7 @@ import com.leonardo.escuela.exceptions.EntidadRelacionadaException;
 import com.leonardo.escuela.mapper.AlumnoMapper;
 import com.leonardo.escuela.repositories.AlumnoRepository;
 import com.leonardo.escuela.repositories.InscripcionRepository;
-import com.leonardo.escuela.utils.ServiceUtils;
+import com.leonardo.escuela.utils.AlumnoLookup;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +39,7 @@ public class AlumnoServicesImpl implements AlumnoService {
     @Transactional(readOnly = true)
     public AlumnoResponse obtenerPorId(Long id) {
         log.info("Consultando alumno con ID {}", id);
-        return alumnoMapper.entidadAResponse(obtenerAlumno(id));
+        return alumnoMapper.entidadAResponse(AlumnoLookup.obtener(alumnoRepository, id));
     }
 
     @Override
@@ -56,7 +56,7 @@ public class AlumnoServicesImpl implements AlumnoService {
     public AlumnoResponse actualizar(AlumnoRequest request, Long id) {
         log.info("Actualizando alumno con ID {}", id);
         validarRequest(request);
-        Alumno alumno = obtenerAlumno(id);
+        Alumno alumno = AlumnoLookup.obtener(alumnoRepository, id);
         if (!alumno.cambiaEnDatos(request.nombre(), request.apellidoPaterno(), request.apellidoMaterno()))
             return alumnoMapper.entidadAResponse(alumno);
         alumno.actualizar(request.nombre(), request.apellidoPaterno(), request.apellidoMaterno());
@@ -68,7 +68,7 @@ public class AlumnoServicesImpl implements AlumnoService {
     @Override
     public void eliminar(Long id) {
         log.info("Eliminando alumno con ID {}", id);
-        Alumno alumno = obtenerAlumno(id);
+        Alumno alumno = AlumnoLookup.obtener(alumnoRepository, id);
         if (inscripcionRepository.existsByAlumnoIdAlumno(id))
             throw new EntidadRelacionadaException("No se puede eliminar el alumno porque tiene inscripciones asignadas");
         alumnoRepository.delete(alumno);
@@ -105,9 +105,5 @@ public class AlumnoServicesImpl implements AlumnoService {
         Alumno guardado = alumnoRepository.saveAndFlush(alumno);
         log.info("Alumno guardado con ID {}", guardado.getIdAlumno());
         return alumnoMapper.entidadAResponse(guardado);
-    }
-
-    private Alumno obtenerAlumno(Long id) {
-        return ServiceUtils.obtenerEntidadOException(alumnoRepository, id, Alumno.class);
     }
 }

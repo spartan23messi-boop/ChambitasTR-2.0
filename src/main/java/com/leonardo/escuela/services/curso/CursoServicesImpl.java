@@ -10,6 +10,7 @@ import com.leonardo.escuela.mapper.CursoMapper;
 import com.leonardo.escuela.repositories.CursoRepository;
 import com.leonardo.escuela.repositories.GrupoRepository;
 import com.leonardo.escuela.utils.ServiceUtils;
+import com.leonardo.escuela.utils.StringCustomUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,7 +50,7 @@ public class CursoServicesImpl implements CursoServices {
         validarRequest(request);
 
         Curso curso = cursoMapper.requestAEntidad(request);
-        validarNombreUnico(curso.getNombre(), null);
+        validarUnicidad(request, null);
 
         return guardarYResponder(curso);
     }
@@ -67,7 +68,7 @@ public class CursoServicesImpl implements CursoServices {
                 request.creditos()))
             return cursoMapper.entidadAResponse(curso);
 
-        validarNombreUnico(request.nombre().trim(), id);
+        validarUnicidad(request, id);
 
         curso.actualizar(
                 request.nombre(),
@@ -101,7 +102,8 @@ public class CursoServicesImpl implements CursoServices {
             );
     }
 
-    private void validarNombreUnico(String nombre, Long id) {
+    private void validarUnicidad(CursoRequest request, Long id) {
+        String nombre = StringCustomUtils.limpiar(request.nombre());
         boolean duplicado = id == null
                 ? cursoRepository.existsByNombreIgnoreCase(nombre)
                 : cursoRepository.existsByNombreIgnoreCaseAndIdCursoNot(nombre, id);
