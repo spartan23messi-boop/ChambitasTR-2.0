@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import java.time.LocalTime;
 @Service @RequiredArgsConstructor @Transactional @Slf4j
 public class HorarioServicesImpl implements HorarioServices {
     private final HorarioRepository horarioRepository;
@@ -50,20 +49,23 @@ public class HorarioServicesImpl implements HorarioServices {
         horarioRepository.flush();
         log.info("Horario {} eliminado",id);
     }
-    private void validarTraslapes(Horario actual,Long id) {
-        Grupo grupo=actual.getGrupo();
-        List<Horario> candidatos=horarioRepository.findByDiaAndGrupoAulaIdAulaAndGrupoPeriodo(
-            actual.getDia(),grupo.getAula().getIdAula(),grupo.getPeriodo());
-        if (candidatos.stream().anyMatch(h -> !java.util.Objects.equals(h.getIdHorario(),id) && traslapa(actual,h)))
-            throw new ConflictoException("El aula ya está ocupada en ese día y horario para el período");
-        if (horarioRepository.findByDiaAndGrupoIdGrupo(actual.getDia(),grupo.getIdGrupo()).stream()
-                .anyMatch(h -> !java.util.Objects.equals(h.getIdHorario(),id) && traslapa(actual,h)))
+    private void validarTraslapes(Horario actual, Long idExcluido) {
+        Grupo grupo = actual.getGrupo();
+
+        if (horarioRepository.existeTraslapePorGrupo(
+                grupo.getIdGrupo(), actual.getDia(), actual.getHoraInicio(),
+                actual.getHoraFin(), idExcluido)) {
             throw new ConflictoException("El grupo ya tiene un horario traslapado");
+        }
+
+        if (horarioRepository.existeTraslapePorAula(
+                grupo.getAula().getIdAula(), grupo.getPeriodo(), grupo.getIdGrupo(),
+                actual.getDia(), actual.getHoraInicio(), actual.getHoraFin(), idExcluido)) {
+            throw new ConflictoException(
+                    "El aula ya está ocupada en ese día y horario para el período");
+        }
     }
-    private boolean traslapa(Horario a,Horario b) {
-        return LocalTime.parse(a.getHoraInicio()).isBefore(LocalTime.parse(b.getHoraFin()))
-            && LocalTime.parse(b.getHoraInicio()).isBefore(LocalTime.parse(a.getHoraFin()));
-    }
+
     private void validarRequest(HorarioRequest r) {
         if(r==null) throw new DatoInvalidoException("Los datos del horario son requeridos");
     }

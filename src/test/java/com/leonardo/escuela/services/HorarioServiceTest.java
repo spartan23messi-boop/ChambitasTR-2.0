@@ -13,7 +13,6 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,14 +36,21 @@ class HorarioServiceTest {
             return entidad;
         });
         lenient().when(grupos.findById(1L)).thenReturn(Optional.of(Fixtures.grupo()));
-        lenient().when(horarios.findByDiaAndGrupoAulaIdAulaAndGrupoPeriodo(anyString(), anyLong(), anyString())).thenReturn(List.of());
-        lenient().when(horarios.findByDiaAndGrupoIdGrupo(anyString(), anyLong())).thenReturn(List.of());
+        lenient().when(horarios.existeTraslapePorGrupo(
+                anyLong(), anyString(), anyString(), anyString(), nullable(Long.class)))
+                .thenReturn(false);
+        lenient().when(horarios.existeTraslapePorAula(
+                anyLong(), anyString(), anyLong(), anyString(), anyString(),
+                anyString(), nullable(Long.class)))
+                .thenReturn(false);
     }
 
     @Test
     void registrar_datosValidos_registraHorario() {
         HorarioResponse resultado = service.registro(new HorarioRequest(1L, "LUNES", "08:00", "10:00"));
         assertNotNull(resultado);
+        verify(horarios).existeTraslapePorGrupo(
+                eq(1L), eq("LUNES"), eq("08:00"), eq("10:00"), isNull());
         verify(horarios).saveAndFlush(any(Horario.class));
     }
 
@@ -56,13 +62,13 @@ class HorarioServiceTest {
         Grupo periodoNuevo = Fixtures.grupo();
         periodoNuevo.setPeriodo("2026-02");
         when(grupos.findById(1L)).thenReturn(Optional.of(periodoNuevo));
-        when(horarios.findByDiaAndGrupoAulaIdAulaAndGrupoPeriodo("LUNES", 3L, "2026-02"))
-                .thenReturn(List.of());
         HorarioResponse resultado = service.registro(new HorarioRequest(1L, "LUNES", "08:00", "10:00"));
         assertNotNull(resultado);
         assertEquals("2026-01", anterior.getGrupo().getPeriodo());
         assertEquals("2026-02", periodoNuevo.getPeriodo());
-        verify(horarios).findByDiaAndGrupoAulaIdAulaAndGrupoPeriodo("LUNES", 3L, "2026-02");
+        verify(horarios).existeTraslapePorAula(
+                eq(3L), eq("2026-02"), eq(1L), eq("LUNES"),
+                eq("08:00"), eq("10:00"), isNull());
         verify(horarios).saveAndFlush(any(Horario.class));
     }
 
@@ -80,20 +86,19 @@ class HorarioServiceTest {
 
     @Test
     void registrar_aulaOcupadaPorOtroGrupo_lanzaConflictoException() {
-        Horario ocupado = Fixtures.horario();
-        Grupo otroGrupo = Fixtures.grupo();
-        otroGrupo.setIdGrupo(2L);
-        ocupado.setGrupo(otroGrupo);
-        ocupado.setIdHorario(2L);
-        when(horarios.findByDiaAndGrupoAulaIdAulaAndGrupoPeriodo(anyString(),anyLong(),anyString()))
-                .thenReturn(List.of(ocupado));
+        when(horarios.existeTraslapePorAula(
+                anyLong(), anyString(), anyLong(), anyString(),
+                anyString(), anyString(), nullable(Long.class)))
+                .thenReturn(true);
         assertThrows(ConflictoException.class, () -> service.registro(new HorarioRequest(1L, "LUNES", "08:00", "10:00")));
         verify(horarios, never()).saveAndFlush(any());
     }
 
     @Test
     void registrar_traslapeEnElMismoGrupo_lanzaConflictoException() {
-        when(horarios.findByDiaAndGrupoIdGrupo(anyString(),anyLong())).thenReturn(List.of(Fixtures.horario()));
+        when(horarios.existeTraslapePorGrupo(
+                anyLong(), anyString(), anyString(), anyString(), nullable(Long.class)))
+                .thenReturn(true);
         assertThrows(ConflictoException.class, () -> service.registro(new HorarioRequest(1L, "LUNES", "08:00", "10:00")));
         verify(horarios, never()).saveAndFlush(any());
     }
@@ -137,14 +142,22 @@ class HorarioServiceTest {
     @Test
     void actualizar_datosValidos_actualizaHorario() {
         assertNotNull(service.actualizar(new HorarioRequest(1L,"MARTES","08:00","10:00"),1L));
+        verify(horarios).existeTraslapePorGrupo(
+                eq(1L), eq("MARTES"), eq("08:00"), eq("10:00"), eq(1L));
         verify(horarios).saveAndFlush(any(Horario.class));
     }
 
     @Test
     void actualizar_mismoGrupoDatosIgualesExceptoPeriodo_actualizaExitosamente() {
-        Grupo g = Fixtures.grupo(); g.setPeriodo("2026-02");
-        when(grupos.findById(1L)).thenReturn(Optional.of(g));
-        assertNotNull(service.actualizar(new HorarioRequest(1L,"LUNES","08:00","10:00"),1L));
+        Grupo nuevoGrupo = Fixtures.grupo();
+        nuevoGrupo.setPeriodo("2026-02");
+        when(grupos.findById(1L)).thenReturn(Optional.of(nuevoGrupo));
+        assertEquals("2026-01", Fixtures.horario().getGrupo().getPeriodo());
+        assertNotNull(service.actualizar(
+                new HorarioRequest(1L, "LUNES", "08:00", "10:00"), 1L));
+        verify(horarios).existeTraslapePorAula(
+                eq(3L), eq("2026-02"), eq(1L), eq("LUNES"),
+                eq("08:00"), eq("10:00"), eq(1L));
         verify(horarios).saveAndFlush(any(Horario.class));
     }
 
@@ -156,13 +169,10 @@ class HorarioServiceTest {
 
     @Test
     void actualizar_aulaOcupadaPorOtroGrupo_lanzaConflictoException() {
-        Horario ocupado = Fixtures.horario();
-        Grupo otroGrupo = Fixtures.grupo();
-        otroGrupo.setIdGrupo(2L);
-        ocupado.setGrupo(otroGrupo);
-        ocupado.setIdHorario(2L);
-        when(horarios.findByDiaAndGrupoAulaIdAulaAndGrupoPeriodo(anyString(),anyLong(),anyString()))
-                .thenReturn(List.of(ocupado));
+        when(horarios.existeTraslapePorAula(
+                anyLong(), anyString(), anyLong(), anyString(),
+                anyString(), anyString(), nullable(Long.class)))
+                .thenReturn(true);
         assertThrows(ConflictoException.class, () -> service.actualizar(new HorarioRequest(1L, "LUNES", "08:00", "10:00"),1L));
         verify(horarios, never()).saveAndFlush(any());
     }
